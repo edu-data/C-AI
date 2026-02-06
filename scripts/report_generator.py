@@ -246,7 +246,7 @@ class ReportGenerator:
     
     def generate_pdf_report(self, filename: str = "analysis_report.pdf") -> str:
         """
-        PDF 리포트 생성
+        PDF 리포트 생성 (한글 지원)
         
         Args:
             filename: 출력 파일명
@@ -260,8 +260,44 @@ class ReportGenerator:
             from reportlab.lib.units import inch
             from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
             from reportlab.lib import colors
+            from reportlab.pdfbase import pdfmetrics
+            from reportlab.pdfbase.ttfonts import TTFont
         except ImportError:
             return "❌ reportlab 패키지가 필요합니다: pip install reportlab"
+        
+        # 한글 글꼴 등록
+        try:
+            from pathlib import Path
+            import platform
+            
+            # Windows 시스템의 글꼴 경로
+            if platform.system() == "Windows":
+                font_paths = [
+                    "C:\\Windows\\Fonts\\malgun.ttf",      # 맑은 고딕
+                    "C:\\Windows\\Fonts\\batang.ttf",      # 바탕체
+                    "C:\\Windows\\Fonts\\gulim.ttf",       # 굴림체
+                ]
+            else:
+                # Linux/Mac
+                font_paths = [
+                    "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+                    "/System/Library/Fonts/Arial.ttf",
+                ]
+            
+            font_path = None
+            for path in font_paths:
+                if Path(path).exists():
+                    font_path = path
+                    break
+            
+            if font_path:
+                pdfmetrics.registerFont(TTFont('Korean', font_path))
+                korean_font = 'Korean'
+            else:
+                korean_font = 'Helvetica'  # 폴백: 영문 폰트
+                
+        except Exception as e:
+            korean_font = 'Helvetica'  # 폴백: 영문 폰트
         
         output_path = self.output_dir / filename
         
@@ -270,20 +306,28 @@ class ReportGenerator:
         story = []
         styles = getSampleStyleSheet()
         
-        # 제목
+        # 한글 스타일 정의
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
             fontSize=24,
             textColor=colors.HexColor('#4472C4'),
             spaceAfter=12,
-            alignment=1  # 중앙 정렬
+            alignment=1,  # 중앙 정렬
+            fontName=korean_font
         )
-        story.append(Paragraph("GAIM Lab v3.0<br/>교육 수업 분석 보고서", title_style))
+        
+        # 제목
+        story.append(Paragraph("GAIM Lab v3.0 교육 수업 분석 보고서", title_style))
         story.append(Spacer(1, 0.3*inch))
         
         # 생성 일시
-        story.append(Paragraph(f"생성일: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
+        date_style = ParagraphStyle(
+            'DateStyle',
+            parent=styles['Normal'],
+            fontName=korean_font
+        )
+        story.append(Paragraph(f"생성일: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", date_style))
         story.append(Spacer(1, 0.2*inch))
         
         # 통계
@@ -303,7 +347,7 @@ class ReportGenerator:
             ('BACKGROUND', (0, 0), (1, 0), colors.HexColor('#4472C4')),
             ('TEXTCOLOR', (0, 0), (1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), korean_font),  # 한글 폰트 적용
             ('FONTSIZE', (0, 0), (1, 0), 12),
             ('BOTTOMPADDING', (0, 0), (1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
@@ -312,7 +356,12 @@ class ReportGenerator:
         story.append(Spacer(1, 0.3*inch))
         
         # 상세 표
-        story.append(Paragraph("분석 결과 상세", styles['Heading2']))
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontName=korean_font
+        )
+        story.append(Paragraph("분석 결과 상세", heading_style))
         story.append(Spacer(1, 0.1*inch))
         
         sorted_results = sorted(self.results, key=lambda x: x["total_score"], reverse=True)
@@ -332,7 +381,7 @@ class ReportGenerator:
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4472C4')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, -1), korean_font),  # 한글 폰트 적용
             ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
