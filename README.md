@@ -342,8 +342,7 @@ in the Software without restriction...
 
 ## 📞 문의 및 지원
 
-- **이메일**: gaim.lab@ginue.ac.kr
-- **웹사이트**: https://gaim-lab.ginue.ac.kr
+- **이메일**: educpa@ginue.ac.kr
 - **GitHub Issues**: [버그 보고/기능 제안](https://github.com/yourname/gaim-lab-v3/issues)
 - **Discussions**: [토론](https://github.com/yourname/gaim-lab-v3/discussions)
 
